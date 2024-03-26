@@ -1,0 +1,32 @@
+#main-toolbar #activity-button {
+  background-image: url(../activity/sample.svg);
+}
+
+body {
+	height: 100vh;
+}
+
+#main-toolbar #tetrahedron-button {
+	background-image: url(../icons/tetrahedron.svg);
+}
+#main-toolbar #cube-button {
+	background-image: url(../icons/cube.svg);
+}
+#main-toolbar #octahedron-button {
+	background-image: url(../icons/octahedron.svg);
+}
+#main-toolbar #dodecahedron-button {
+	background-image: url(../icons/dodecahedron.svg);
+}
+#main-toolbar #icosahedron-button {
+	background-image: url(../icons/icosahedron.svg);
+}
+#main-toolbar #clear-button {
+	background-image: url(../icons/clear.svg);
+}
+#main-toolbar #rotate-button {
+	background-image: url(../icons/rotate.svg);
+}
+#main-toolbar #tutorial-button {
+	background-image: url(../icons/help.svg);
+}
