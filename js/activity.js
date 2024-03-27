@@ -5,19 +5,18 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 	var renderer = new THREE.WebGLRenderer();
 	renderer.setClearColor(0xffffff);
 	var material = new THREE.MeshBasicMaterial({ color: 0xc22d2d });
-	var objects = []; // Array to store both THREE.Mesh and CANNON.Body objects
-	// Initialize the physics world
-
+	var objects = [];
+	
 	var CANNON = window.CANNON;
 	var world = new CANNON.World();
 	world.gravity.set(0, -9.82, 0);
 	world.broadphase = new CANNON.NaiveBroadphase();
 	world.solver.iterations = 10;
-	// Adjusted ground and wall dimensions and positions
-	var groundSize = 10; // Size of the ground - width and depth
-	var groundThickness = 0.2; // Thickness of the ground, making it more like a base than a thin plane
-	var wallHeight = 2; // Reduced wall height for bowl-like structure
-	var wallThickness = 0.2; // Thickness of walls
+
+	var groundSize = 10; 
+	var groundThickness = 0.2; 
+	var wallHeight = 2; 
+	var wallThickness = 0.2; 
 
 	// Clear previous ground and wall bodies
 	world.bodies.forEach(body => world.remove(body));
@@ -71,7 +70,7 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 
 	// Contact material between ground and objects
 	var groundObjectContactMaterial = new CANNON.ContactMaterial(groundMaterial, objectMaterial, {
-		friction: 0.4,   // Adjust friction to your needs
+		friction: 0.4,  // Adjust friction to your needs
 		restitution: 0.3 // Lower restitution reduces bounciness
 	});
 	world.addContactMaterial(groundObjectContactMaterial);
@@ -95,10 +94,10 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 		requestAnimationFrame(animate);
 
 		// Update the physics world
-		var deltaTime = 1 / 60; // Assuming 60 FPS, adjust as necessary
+		var deltaTime = 1 / 60; 
 		world.step(deltaTime);
 
-		// Update each mesh position and rotation to match its physics body
+		
 		objects.forEach(function (obj) {
 			obj.mesh.position.copy(obj.body.position);
 			obj.mesh.quaternion.copy(obj.body.quaternion);
@@ -208,15 +207,15 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 			this.classList.remove("active");
 		}
 	});
-	// Conversion to utilize global objects array for tracking and removal
+
 	function removeObject(selectedObject) {
-		// Find corresponding object information in the objects array
+
 		let objectData = objects.find(obj => obj.mesh === selectedObject || obj.mesh.children.includes(selectedObject));
 		if (!objectData) {
 			return; // Object not found in our tracking array
 		}
 
-		// Remove visual representation from the scene
+		
 		scene.remove(objectData.mesh);
 
 		// Remove physical body from the physics world
@@ -228,9 +227,9 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 
 	// Attach the click event listener for object removal
 	renderer.domElement.addEventListener('click', function (event) {
-		if (!clearMode) return; // Skip if we're not in clear mode
+		if (!clearMode) return; 
 
-		// Calculate mouse position and set up the raycaster
+
 		var mouse = new THREE.Vector2(
 			(event.clientX / window.innerWidth) * 2 - 1,
 			-(event.clientY / window.innerHeight) * 2 + 1
@@ -238,7 +237,6 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 		var raycaster = new THREE.Raycaster();
 		raycaster.setFromCamera(mouse, camera);
 
-		// Perform the raycast to find intersected objects
 		var intersects = raycaster.intersectObjects(scene.children, true);
 		if (intersects.length > 0) {
 			// Call removeObject on the first intersected object
