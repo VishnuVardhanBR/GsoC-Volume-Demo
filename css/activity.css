@@ -30,3 +30,6 @@ body {
 #main-toolbar #tutorial-button {
 	background-image: url(../icons/help.svg);
 }
+#main-toolbar #shake-board {
+	background-image: url(../icons/vibrate.svg);
+}

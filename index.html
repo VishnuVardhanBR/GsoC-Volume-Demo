@@ -10,9 +10,9 @@
 <link rel="stylesheet" media="screen and (device-width: 1200px) and (device-height: 900px)"
 	href="lib/sugar-web/graphics/css/sugar-200dpi.css">
 <link rel="stylesheet" href="css/activity.css">
+<script src="lib/cannon.js"></script>
 <script data-main="js/loader" src="lib/require.js"></script>
 <script type="text/javascript" src="../../cordova.js"></script>
-<script src="lib/cannon.js"></script>
 </head>
 
 <body>
@@ -28,10 +28,12 @@
   <button class="toolbutton" id="icosahedron-button" title="Icosahedron"></button>
   <button class="toolbutton" id="rotate-button" title="Rotate"></button>
   <button class="toolbutton" id="clear-button" title="Clear"></button>
+  <button class="toolbutton" id="shake-board" title="Shake"></button>
   
   <!-- Buttons with class="pull-right" will be right aligned -->
   <button class="toolbutton pull-right" id="stop-button" title="Stop"></button>
   <button class="toolbutton pull-right" id="tutorial-button" title="Tutorial"></button>
+
 </div>
 
 <!-- The content of your activity goes inside the canvas -->

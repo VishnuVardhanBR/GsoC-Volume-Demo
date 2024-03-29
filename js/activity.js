@@ -6,17 +6,16 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 	renderer.setClearColor(0xffffff);
 	var material = new THREE.MeshBasicMaterial({ color: 0xc22d2d });
 	var objects = [];
-	
 	var CANNON = window.CANNON;
 	var world = new CANNON.World();
 	world.gravity.set(0, -9.82, 0);
 	world.broadphase = new CANNON.NaiveBroadphase();
 	world.solver.iterations = 10;
 
-	var groundSize = 10; 
-	var groundThickness = 0.2; 
-	var wallHeight = 2; 
-	var wallThickness = 0.2; 
+	var groundSize = 10;
+	var groundThickness = 0.2;
+	var wallHeight = 2;
+	var wallThickness = 0.2;
 
 	// Clear previous ground and wall bodies
 	world.bodies.forEach(body => world.remove(body));
@@ -32,6 +31,7 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 	var groundGeometry = new THREE.BoxGeometry(groundSize + 2 * wallThickness, groundThickness, groundSize + 2 * wallThickness); // Include wall thickness in ground size for a flush fit
 	var groundMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 }); // Gray color
 	var groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+	groundMesh.receiveShadow = true;
 	groundMesh.position.y = -wallHeight / 1.8; // Position the ground mesh
 	addEdgeLines(groundMesh);
 	scene.add(groundMesh);
@@ -52,6 +52,7 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 		);
 		wallMesh.position.copy(position);
 		addEdgeLines(wallMesh);
+		wallMesh.receiveShadow = true;
 		scene.add(wallMesh);
 	}
 
@@ -78,11 +79,11 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 	// Update material when creating objects
 	function addMeshAndBody(mesh, cannonShape) {
 		mesh.position.y = 5;
+		mesh.castShadow = true;
 		scene.add(mesh);
-
 		var body = new CANNON.Body({
 			mass: 1,
-			material: objectMaterial // Use the defined material
+			material: objectMaterial // Assumed you have defined this material somewhere
 		});
 		body.addShape(cannonShape);
 		body.position.set(mesh.position.x, mesh.position.y, mesh.position.z);
@@ -94,10 +95,10 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 		requestAnimationFrame(animate);
 
 		// Update the physics world
-		var deltaTime = 1 / 60; 
+		var deltaTime = 1 / 60;
 		world.step(deltaTime);
 
-		
+
 		objects.forEach(function (obj) {
 			obj.mesh.position.copy(obj.body.position);
 			obj.mesh.quaternion.copy(obj.body.quaternion);
@@ -109,13 +110,18 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 	requirejs(['domReady!'], function () {
 		activity.setup();
 		renderer.setSize(window.innerWidth, window.innerHeight / 1.05);
+		renderer.shadowMap.enabled = true;
 		document.getElementById("board").appendChild(renderer.domElement);
 		camera.position.z = 9;
 		camera.position.y = 8;
 		camera.rotation.x = -Math.PI / 4;
 		var ambientLight = new THREE.AmbientLight(0x404040);
 		scene.add(ambientLight);
-
+		// Assuming you have a directional light
+		var directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+		directionalLight.position.set(10, 20, 10);
+		directionalLight.castShadow = true; // Enable casting shadows
+		scene.add(directionalLight);
 		// Set default shape
 		createCube(); // This now adds a Cube that falls due to gravity
 
@@ -149,10 +155,30 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 	}
 
 	function createTetrahedron() {
+		const verticesTetra = [
+			new CANNON.Vec3(1, 1, 1),
+			new CANNON.Vec3(-1, -1, 1),
+			new CANNON.Vec3(-1, 1, -1),
+			new CANNON.Vec3(1, -1, -1),
+		]
+
+		// Define the faces of the tetrahedron (counter-clockwise order)
+		const facesTetra = [
+			[2, 1, 0],
+			[0, 3, 2],
+			[1, 3, 0],
+			[2, 3, 1],
+		]
+
+		const tetrahedronShape = new CANNON.ConvexPolyhedron({
+			vertices: verticesTetra,
+			faces: facesTetra,
+		})
+
 		var geometry = new THREE.TetrahedronGeometry(1);
 		var mesh = new THREE.Mesh(geometry, material);
 		addEdgeLines(mesh);
-		addMeshAndBody(mesh, new CANNON.Sphere(0.62)); // Use the bounding sphere as an approximation
+		addMeshAndBody(mesh, tetrahedronShape); // Use the bounding sphere as an approximation
 	}
 
 	function createCube() {
@@ -163,17 +189,78 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 	}
 
 	function createOctahedron() {
+		const vertices = [
+			new CANNON.Vec3(1, 0, 0),
+			new CANNON.Vec3(-1, 0, 0),
+			new CANNON.Vec3(0, 1, 0),
+			new CANNON.Vec3(0, -1, 0),
+			new CANNON.Vec3(0, 0, 1),
+			new CANNON.Vec3(0, 0, -1),
+		]
+
+		const faces = [
+			[0, 2, 4],
+			[0, 4, 3],
+			[0, 3, 5],
+			[0, 5, 2],
+			[1, 2, 5],
+			[1, 5, 3],
+			[1, 3, 4],
+			[1, 4, 2],
+		]
+
+
+		const octahedronShape = new CANNON.ConvexPolyhedron({
+			vertices: vertices,
+			faces: faces,
+		})
 		var geometry = new THREE.OctahedronGeometry(1);
 		var mesh = new THREE.Mesh(geometry, material);
 		addEdgeLines(mesh);
-		addMeshAndBody(mesh, new CANNON.Sphere(0.62)); // Bounding sphere approximation
+		addMeshAndBody(mesh, octahedronShape); // Bounding sphere approximation
 	}
 
 	function createDodecahedron() {
+		// const t = ( 1 + Math.sqrt( 5 ) ) / 2;
+		// const r = 1/t;
+		// console.log()
+		// const vertices = [
+		// 	new CANNON.Vec3(-1, -1, -1), new CANNON.Vec3(-1, -1, 1),
+		// 	new CANNON.Vec3(-1, 1, -1), new CANNON.Vec3(-1, 1, 1),
+		// 	new CANNON.Vec3(1, -1, -1), new CANNON.Vec3(1, -1, 1),
+		// 	new CANNON.Vec3(1, 1, -1), new CANNON.Vec3(1, 1, 1),
+		// 	new CANNON.Vec3(0, -r, -t), new CANNON.Vec3(0, -r, t),
+		// 	new CANNON.Vec3(0, r, -t), new CANNON.Vec3(0, r, t),
+		// 	new CANNON.Vec3(-r, -t, 0), new CANNON.Vec3(-r, t, 0),
+		// 	new CANNON.Vec3(r, -t, 0), new CANNON.Vec3(r, t, 0),
+		// 	new CANNON.Vec3(-t, 0, -r), new CANNON.Vec3(t, 0, -r),
+		// 	new CANNON.Vec3(-t, 0, r), new CANNON.Vec3(t, 0, r),
+		// ];
+
+		// const faces = [
+		// 	[3, 11, 7], [3, 7, 15], [3, 15, 13],
+		// 	[7, 19, 17], [7, 17, 6], [7, 6, 15],
+		// 	[17, 4, 8], [17, 8, 10], [17, 10, 6],
+		// 	[8, 0, 16], [8, 16, 2], [8, 2, 10],
+		// 	[0, 12, 1], [0, 1, 18], [0, 18, 16],
+		// 	[6, 10, 2], [6, 2, 13], [6, 13, 15],
+		// 	[2, 16, 18], [2, 18, 3], [2, 3, 13],
+		// 	[18, 1, 9], [18, 9, 11], [18, 11, 3],
+		// 	[4, 14, 12], [4, 12, 0], [4, 0, 8],
+		// 	[11, 9, 5], [11, 5, 19], [11, 19, 7],
+		// 	[19, 5, 14], [19, 14, 4], [19, 4, 17],
+		// 	[1, 12, 14], [1, 14, 5], [1, 5, 9],
+		// ];
+
+		// const dodecahedronShape = new CANNON.ConvexPolyhedron({
+		// 	vertices: vertices,
+		// 	faces: faces,
+		// })
+
 		var geometry = new THREE.DodecahedronGeometry(1);
 		var mesh = new THREE.Mesh(geometry, material);
 		addEdgeLines(mesh);
-		addMeshAndBody(mesh, new CANNON.Sphere(0.8)); // Bounding sphere approximation
+		addMeshAndBody(mesh, new CANNON.Sphere(0.8));
 	}
 
 	function createIcosahedron() {
@@ -207,7 +294,20 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 			this.classList.remove("active");
 		}
 	});
+	function shakeBoard() {
+		objects.forEach(function (obj) {
+			// Generate random forces for x, y, and z axes
+			var forceX = (Math.random() - 0.5) * 10 // Random force between -10 and 10
+			var forceY = 4;   // Random upward force between 5 and 25 for a slight lift
+			var forceZ = (Math.random() - 0.5) * 10// Random force between -10 and 10
 
+			// Apply the force at the object's current position to shake it
+			obj.body.applyImpulse(new CANNON.Vec3(forceX, forceY, forceZ), obj.body.position);
+		});
+	}
+	document.getElementById("shake-board").addEventListener('click', function () {
+		shakeBoard(); // Call the shakeBoard function when the button is clicked
+	});
 	function removeObject(selectedObject) {
 
 		let objectData = objects.find(obj => obj.mesh === selectedObject || obj.mesh.children.includes(selectedObject));
@@ -215,11 +315,10 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 			return; // Object not found in our tracking array
 		}
 
-		
 		scene.remove(objectData.mesh);
 
 		// Remove physical body from the physics world
-		world.remove(objectData.body);
+		world.removeBody(objectData.body);
 
 		// Update the objects array to reflect removal
 		objects = objects.filter(obj => obj !== objectData);
@@ -227,7 +326,7 @@ define(["sugar-web/activity/activity", "three"], function (activity, THREE) {
 
 	// Attach the click event listener for object removal
 	renderer.domElement.addEventListener('click', function (event) {
-		if (!clearMode) return; 
+		if (!clearMode) return;
 
 
 		var mouse = new THREE.Vector2(
